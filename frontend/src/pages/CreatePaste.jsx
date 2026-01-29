@@ -104,7 +104,7 @@ const handleSubmit = async (e) => {
 
         <button
           type="submit"
-          className="bg-orange-500 text-white p-2 rounded hover:bg-orange-600 transition"
+          className="bg-green-400 text-white p-2 rounded hover:bg-green-500 transition"
         >
           Create Paste
         </button>
