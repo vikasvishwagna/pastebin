@@ -8,6 +8,10 @@ function CreatePaste() {
   const [pasteUrl, setPasteUrl] = useState('');
   const [error, setError] = useState('');
 
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
 //     setError('');
@@ -47,7 +51,7 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    const res = await axios.post('http://localhost:3000/api/pastes', {
+    const res = await axios.post(`${API_BASE_URL}/api/pastes`, {
       content,
       ttl_seconds: ttl ? parseInt(ttl) : undefined,
       max_views: views ? parseInt(views) : undefined,

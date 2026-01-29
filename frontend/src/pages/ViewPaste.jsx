@@ -6,12 +6,13 @@ function ViewPaste() {
   const { id } = useParams(); // get paste ID from URL
   const [paste, setPaste] = useState(null);
   const [error, setError] = useState("");
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchPaste = async () => {
       try {
         // Call backend API to fetch paste
-        const res = await axios.get(`http://localhost:3000/api/pastes/${id}`);
+        const res = await axios.get(`${API_BASE_URL}/api/pastes/${id}`);
 
         // Backend returns { content, remaining_views, expires_at }
         setPaste(res.data);
