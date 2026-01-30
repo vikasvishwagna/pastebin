@@ -40,7 +40,8 @@ function App() {
   {/* Routes */}
   <Routes>
     <Route path="/" element={<CreatePaste />} />
-    <Route path="/paste/:id" element={<ViewPaste />} />
+    <Route path="/p/:id" element={<ViewPaste />} />
+ 
   </Routes>
 </main>
 

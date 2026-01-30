@@ -60,7 +60,8 @@ const handleSubmit = async (e) => {
     // Backend returns { id, url }
     if (res.data.id) {
       // Use React route instead of backend HTML route
-      setPasteUrl(`/paste/${res.data.id}`);
+      setPasteUrl(`/p/${res.data.id}`);
+
     }
   } catch (err) {
     console.error("Axios error:", err.response?.data || err.message);

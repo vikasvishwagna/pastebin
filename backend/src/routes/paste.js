@@ -47,13 +47,11 @@ router.post("/", async (req, res) => {
       id: pasteId,
       url: `${process.env.BASE_URL}/p/${pasteId}`, // backend HTML link
     });
-
   } catch (err) {
     console.error("Error creating paste:", err);
     return res.status(500).json({ ok: false, error: "Server error" });
   }
 });
-
 
 // Fetch paste (JSON)
 router.get("/:id", async (req, res) => {
@@ -69,20 +67,20 @@ router.get("/:id", async (req, res) => {
     const paste = typeof data === "string" ? JSON.parse(data) : data;
 
     // Determine current time
-    let now = Date.now();
-    if (process.env.TEST_MODE === "1" && req.headers["x-test-now-ms"]) {
-      const testTime = parseInt(req.headers["x-test-now-ms"], 10);
-      if (!isNaN(testTime)) now = testTime;
-    }
+    // let now = Date.now();
+    // if (process.env.TEST_MODE === "1" && req.headers["x-test-now-ms"]) {
+    //   const testTime = parseInt(req.headers["x-test-now-ms"], 10);
+    //   if (!isNaN(testTime)) now = testTime;
+    // }
 
-    // Check TTL expiration
-    if (paste.ttl_seconds !== null) {
-      const expiresAt = paste.createdAt + paste.ttl_seconds * 1000;
-      if (now >= expiresAt) {
-        await redis.del(key);
-        return res.status(404).json({ ok: false, message: "Paste expired" });
-      }
-    }
+    // // Check TTL expiration
+    // if (paste.ttl_seconds !== null) {
+    //   const expiresAt = paste.createdAt + paste.ttl_seconds * 1000;
+    //   if (now >= expiresAt) {
+    //     await redis.del(key);
+    //     return res.status(404).json({ ok: false, message: "Paste expired" });
+    //   }
+    // }
 
     // Decrement viewsLeft when JSON API is fetched
     if (paste.viewsLeft !== null) {
@@ -109,9 +107,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-
 // View paste (HTML)
-router.get("/p/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const key = `paste:${id}`;
@@ -124,31 +121,31 @@ router.get("/p/:id", async (req, res) => {
     const paste = typeof data === "string" ? JSON.parse(data) : data;
 
     // Determine current time (for TTL)
-    let now = Date.now();
-    if (process.env.TEST_MODE === "1" && req.headers["x-test-now-ms"]) {
-      const testTime = parseInt(req.headers["x-test-now-ms"], 10);
-      if (!isNaN(testTime)) now = testTime;
-    }
+    // let now = Date.now();
+    // if (process.env.TEST_MODE === "1" && req.headers["x-test-now-ms"]) {
+    //   const testTime = parseInt(req.headers["x-test-now-ms"], 10);
+    //   if (!isNaN(testTime)) now = testTime;
+    // }
 
-    // Check TTL (do NOT decrement views here)
-    if (paste.ttl_seconds !== null) {
-      const expiresAt = paste.createdAt + paste.ttl_seconds * 1000;
-      if (now >= expiresAt) {
-        return res.status(404).send("Paste expired");
-      }
-    }
+    // // Check TTL (do NOT decrement views here)
+    // if (paste.ttl_seconds !== null) {
+    //   const expiresAt = paste.createdAt + paste.ttl_seconds * 1000;
+    //   if (now >= expiresAt) {
+    //     return res.status(404).send("Paste expired");
+    //   }
+    // }
 
     // Decrement viewsLeft only when HTML is viewed
-    if (paste.viewsLeft !== null) {
-      paste.viewsLeft -= 1;
+    // if (paste.viewsLeft !== null) {
+    //   paste.viewsLeft -= 1;
 
-      // Delete if viewsLeft is now 0
-      if (paste.viewsLeft <= 0) {
-        await redis.del(key);
-      } else {
-        await redis.set(key, JSON.stringify(paste));
-      }
-    }
+    //   // Delete if viewsLeft is now 0
+    //   if (paste.viewsLeft <= 0) {
+    //     await redis.del(key);
+    //   } else {
+    //     await redis.set(key, JSON.stringify(paste));
+    //   }
+    // }
 
     return res.status(200).send(`
       <!DOCTYPE html>
