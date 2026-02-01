@@ -40,7 +40,6 @@ function App() {
   <Routes>
     <Route path="/" element={<CreatePaste />} />
     <Route path="/p/:id" element={<ViewPaste />} />
- 
   </Routes>
 </main>
 
