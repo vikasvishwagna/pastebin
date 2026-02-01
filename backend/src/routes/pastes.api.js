@@ -22,6 +22,7 @@ router.post("/", async (req, res) => {
   try {
     const { content, ttl_seconds, max_views } = req.body;
 
+    // Input validation
     if (!content || typeof content !== "string" || content.trim() === "") {
       return res.status(400).json({
         error: "content must be a non-empty string",
@@ -46,24 +47,35 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // Generate unique paste ID
     const pasteId = crypto.randomBytes(6).toString("hex");
     const key = `paste:${pasteId}`;
     const now = Date.now();
 
+    // Prepare paste data
     const pasteData = {
       content,
-      maxViews: max_views ?? null,
+      maxViews: max_views ?? null,  // null = unlimited
       viewsUsed: 0,
       createdAt: now,
-      expiresAt:
-        ttl_seconds !== undefined ? now + ttl_seconds * 1000 : null,
+      expiresAt: ttl_seconds !== undefined ? now + ttl_seconds * 1000 : null,
     };
 
+    // Save to Redis
     await redis.set(key, JSON.stringify(pasteData));
 
-    return res.status(201).json({ id: pasteId });
+    // Optional: set Redis TTL for cleanup
+    if (ttl_seconds) {
+      await redis.expire(key, ttl_seconds);
+    }
+
+    // Return ID and shareable URL
+    return res.status(201).json({
+      id: pasteId,
+      url: `${process.env.BASE_URL}/p/${pasteId}`,
+    });
   } catch (err) {
-    console.error(err);
+    console.error("Error creating paste:", err);
     return res.status(500).json({ error: "internal server error" });
   }
 });
@@ -88,14 +100,14 @@ router.get("/:id", async (req, res) => {
     // TTL check
     if (paste.expiresAt !== null && now >= paste.expiresAt) {
       await redis.del(key);
-      return res.status(410).json({ error: "paste expired" });
+      return res.status(404).json({ error: "paste expired" });
     }
 
     // View limit check
     if (paste.maxViews !== null) {
       if (paste.viewsUsed >= paste.maxViews) {
         await redis.del(key);
-        return res.status(410).json({ error: "paste unavailable" });
+        return res.status(404).json({ error: "paste unavailable" });
       }
       paste.viewsUsed += 1;
       await redis.set(key, JSON.stringify(paste));
@@ -104,15 +116,13 @@ router.get("/:id", async (req, res) => {
     return res.status(200).json({
       content: paste.content,
       remaining_views:
-        paste.maxViews === null
-          ? null
-          : paste.maxViews - paste.viewsUsed,
+        paste.maxViews === null ? null : paste.maxViews - paste.viewsUsed,
       expires_at: paste.expiresAt
         ? new Date(paste.expiresAt).toISOString()
         : null,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching paste:", err);
     return res.status(500).json({ error: "internal server error" });
   }
 });
