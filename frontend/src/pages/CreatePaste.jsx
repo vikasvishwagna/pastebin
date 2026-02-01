@@ -31,11 +31,12 @@ function CreatePaste() {
       });
 
       if (res.data.id) {
-        setPasteUrl(`/pastes/${res.data.id}`);
+        setPasteUrl(`/p/${res.data.id}`);
       }
     } catch (err) {
       console.error("Axios error:", err.response?.data || err.message);
-      setError(err.response?.data?.message || "Failed to create paste");
+      setError(err.response?.data?.error || "Failed to create paste");
+
     } finally {
       setLoading(false);
     }

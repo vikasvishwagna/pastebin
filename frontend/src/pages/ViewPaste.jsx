@@ -19,7 +19,7 @@ function ViewPaste() {
       } catch (err) {
         if (err.response && err.response.data) {
           // Handle expired, max views exceeded, or not found
-          setError(err.response.data.message || "Failed to fetch paste");
+          setError(err.response?.data?.error || "Failed to fetch paste");
         } else {
           setError("Failed to fetch paste");
         }
