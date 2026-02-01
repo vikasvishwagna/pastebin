@@ -31,7 +31,8 @@ function CreatePaste() {
       });
 
       if (res.data.id) {
-        setPasteUrl(`/p/${res.data.id}`);
+        // setPasteUrl(`/p/${res.data.id}`);
+        setPasteUrl(res.data.url);
       }
     } catch (err) {
       console.error("Axios error:", err.response?.data || err.message);
