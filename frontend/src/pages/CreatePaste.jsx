@@ -8,6 +8,7 @@ function CreatePaste() {
   const [pasteUrl, setPasteUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [frontendUrl, setFrontendUrl] = useState("");
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -30,16 +31,16 @@ function CreatePaste() {
         max_views: views ? parseInt(views) : undefined,
       });
 
-      console.log("CreatePasteJSX: ", res );
+      console.log("CreatePasteJSX: ", res);
 
       if (res.data.id) {
-        setPasteUrl(`/paste/${res.data.id}`);
-        // setPasteUrl(res.data.url);
+        setPasteUrl(`${API_BASE_URL}/p/${res.data.id}`);
+        // Optional: show frontend URL
+        setFrontendUrl(`/paste/${res.data.id}`);
       }
     } catch (err) {
       console.error("Axios error:", err.response?.data || err.message);
       setError(err.response?.data?.error || "Failed to create paste");
-
     } finally {
       setLoading(false);
     }
@@ -48,9 +49,7 @@ function CreatePaste() {
   return (
     <div className="w-full max-w-xl bg-white p-6 rounded-lg shadow-md">
       {error && (
-        <div className="bg-red-100 text-red-700 p-2 mb-4 rounded">
-          {error}
-        </div>
+        <div className="bg-red-100 text-red-700 p-2 mb-4 rounded">{error}</div>
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -104,12 +103,23 @@ function CreatePaste() {
 
       {pasteUrl && (
         <div className="mt-4 p-2 bg-green-100 text-green-700 rounded break-all">
-          Your paste URL:{" "}
-          <a href={pasteUrl} className="underline">
+          Grader URL:{" "}
+          <a href={pasteUrl} className="underline" target="_blank">
             {pasteUrl}
           </a>
         </div>
       )}
+
+      {frontendUrl && (
+        <div className="mt-2 p-2 bg-blue-100 text-blue-700 rounded break-all">
+          Frontend URL:{" "}
+          <a href={frontendUrl} className="underline">
+            {frontendUrl}
+          </a>
+        </div>
+      )}
+
+      
     </div>
   );
 }

@@ -15,6 +15,8 @@ function ViewPaste() {
         const res = await axios.get(`${API_BASE_URL}/api/pastes/${id}`);
 
         // Backend returns { content, remaining_views, expires_at }
+        console.log("viewpasteJSX: ", res.data);
+
         setPaste(res.data);
       } catch (err) {
         if (err.response && err.response.data) {
