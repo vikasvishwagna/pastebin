@@ -30,7 +30,6 @@ function App() {
 
   {/* Main Content */}
   <main className="flex-1 flex flex-col items-center justify-start p-6">
-  {/* Page description / tagline */}
   <div className="max-w-2xl text-center mb-6">
     <h2 className="text-xl font-semibold mb-2 text-gray-800">
       Dump it here
