@@ -30,7 +30,7 @@ function CreatePaste() {
         max_views: views ? parseInt(views) : undefined,
       });
 
-      console.log("CreatePaste: ", res);
+      console.log("CreatePasteJSX: ", res );
 
       if (res.data.id) {
         setPasteUrl(`/paste/${res.data.id}`);
