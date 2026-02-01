@@ -4,6 +4,9 @@ import crypto from "crypto";
 
 const router = express.Router();
 
+/**
+ * Deterministic time for testing
+ */
 function getNow(req) {
   if (
     process.env.TEST_MODE === "1" &&
@@ -14,10 +17,17 @@ function getNow(req) {
   return Date.now();
 }
 
+/**
+ * Lua script:
+ * - Atomic fetch
+ * - TTL check
+ * - View limit enforcement
+ * - NO redis errors (string return values only)
+ */
 const FETCH_AND_INCREMENT_LUA = `
 local data = redis.call("GET", KEYS[1])
 if not data then
-  return {err="NOT_FOUND"}
+  return "NOT_FOUND"
 end
 
 local paste = cjson.decode(data)
@@ -26,14 +36,14 @@ local now = tonumber(ARGV[1])
 -- TTL check
 if paste.expiresAt ~= cjson.null and now >= paste.expiresAt then
   redis.call("DEL", KEYS[1])
-  return {err="EXPIRED"}
+  return "EXPIRED"
 end
 
 -- View limit check
 if paste.maxViews ~= cjson.null then
   if paste.viewsUsed >= paste.maxViews then
     redis.call("DEL", KEYS[1])
-    return {err="UNAVAILABLE"}
+    return "UNAVAILABLE"
   end
   paste.viewsUsed = paste.viewsUsed + 1
 end
@@ -42,10 +52,16 @@ redis.call("SET", KEYS[1], cjson.encode(paste))
 return cjson.encode(paste)
 `;
 
+
+// --------------------------------------------------
+// CREATE PASTE
+// POST /api/pastes
+// --------------------------------------------------
 router.post("/", async (req, res) => {
   try {
     const { content, ttl_seconds, max_views } = req.body;
 
+    // Validation
     if (!content || typeof content !== "string" || content.trim() === "") {
       return res.status(400).json({
         error: "content must be a non-empty string",
@@ -70,6 +86,7 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // Create paste
     const pasteId = crypto.randomBytes(6).toString("hex");
     const key = `paste:${pasteId}`;
     const now = Date.now();
@@ -85,9 +102,10 @@ router.post("/", async (req, res) => {
 
     await redis.set(key, JSON.stringify(pasteData));
 
+    // IMPORTANT:
+    // Return ONLY the ID (UI builds the link)
     return res.status(201).json({
       id: pasteId,
-      url: `${req.protocol}://${req.get("host")}/p/${pasteId}`,
     });
   } catch (err) {
     console.error(err);
@@ -95,40 +113,54 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
-  try {
-    const key = `paste:${req.params.id}`;
-    const now = getNow(req);
 
-    const result = await redis.eval(
+// --------------------------------------------------
+// FETCH PASTE
+// GET /api/pastes/:id
+// --------------------------------------------------
+router.get("/:id", async (req, res) => {
+  const key = `paste:${req.params.id}`;
+  const now = getNow(req);
+
+  let result;
+  try {
+    result = await redis.eval(
       FETCH_AND_INCREMENT_LUA,
       1,
       key,
       now
     );
-
-    if (!result) {
-      return res.status(404).json({ error: "paste not found" });
-    }
-
-    const paste = JSON.parse(result);
-
-    return res.status(200).json({
-      content: paste.content,
-      remaining_views:
-        paste.maxViews === null
-          ? null
-          : paste.maxViews - paste.viewsUsed,
-      expires_at: paste.expiresAt
-        ? new Date(paste.expiresAt).toISOString()
-        : null,
-    });
   } catch (err) {
-    if (err.message?.includes("NOT_FOUND")) {
-      return res.status(404).json({ error: "paste not found" });
-    }
-    return res.status(404).json({ error: "paste unavailable" });
+    console.error(err);
+    return res.status(500).json({ error: "internal server error" });
   }
+
+  // Handle Lua return values
+  if (result === "NOT_FOUND") {
+    return res.status(404).json({ error: "paste not found" });
+  }
+
+  if (result === "EXPIRED") {
+    return res.status(410).json({ error: "paste expired" });
+  }
+
+  if (result === "UNAVAILABLE") {
+    return res.status(410).json({ error: "paste unavailable" });
+  }
+
+  // Valid paste
+  const paste = JSON.parse(result);
+
+  return res.status(200).json({
+    content: paste.content,
+    remaining_views:
+      paste.maxViews === null
+        ? null
+        : paste.maxViews - paste.viewsUsed,
+    expires_at: paste.expiresAt
+      ? new Date(paste.expiresAt).toISOString()
+      : null,
+  });
 });
 
 export default router;
