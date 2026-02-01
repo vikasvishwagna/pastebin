@@ -44,9 +44,7 @@ function CreatePaste() {
   return (
     <div className="w-full max-w-xl bg-white p-6 rounded-lg shadow-md">
       {error && (
-        <div className="bg-red-100 text-red-700 p-2 mb-4 rounded">
-          {error}
-        </div>
+        <div className="bg-red-100 text-red-700 p-2 mb-4 rounded">{error}</div>
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -101,9 +99,9 @@ function CreatePaste() {
       {pasteUrl && (
         <div className="mt-4 p-2 bg-green-100 text-green-700 rounded break-all">
           Your paste URL:{" "}
-          <a href={pasteUrl} className="underline">
+          <Link to={pasteUrl} className="underline">
             {pasteUrl}
-          </a>
+          </Link>
         </div>
       )}
     </div>
