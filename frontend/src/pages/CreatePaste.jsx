@@ -1,80 +1,53 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
 
 function CreatePaste() {
-  const [content, setContent] = useState('');
-  const [ttl, setTtl] = useState('');
-  const [views, setViews] = useState('');
-  const [pasteUrl, setPasteUrl] = useState('');
-  const [error, setError] = useState('');
-
+  const [content, setContent] = useState("");
+  const [ttl, setTtl] = useState("");
+  const [views, setViews] = useState("");
+  const [pasteUrl, setPasteUrl] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setPasteUrl("");
 
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setError('');
-//     setPasteUrl('');
-
-//     if (!content) {
-//       setError('Content is required');
-//       return;
-//     }
-
-//     try {
-//   const res = await axios.post('http://localhost:3000/api/paste', {
-//     content,
-//     ttl_seconds: ttl ? parseInt(ttl) : undefined,
-//     max_views: views ? parseInt(views) : undefined,
-//   });
-
-//   // Backend now returns { id, url }
-//   if (res.data.id) {
-//    setPasteUrl(`http://localhost:5173/paste/${res.data.id}`);
-//   }
-// } catch (err) {
-//   console.error("Axios error:", err.response?.data || err.message);
-//   setError(err.response?.data?.message || 'Failed to create paste');
-// }
-
-//   };
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
-  setPasteUrl('');
-
-  if (!content) {
-    setError('Content is required');
-    return;
-  }
-
-  try {
-    const res = await axios.post(`${API_BASE_URL}/api/pastes`, {
-      content,
-      ttl_seconds: ttl ? parseInt(ttl) : undefined,
-      max_views: views ? parseInt(views) : undefined,
-    });
-
-    // Backend returns { id, url }
-    if (res.data.id) {
-      // Use React route instead of backend HTML route
-      setPasteUrl(`/p/${res.data.id}`);
-
+    if (!content.trim()) {
+      setError("Content is required");
+      return;
     }
-  } catch (err) {
-    console.error("Axios error:", err.response?.data || err.message);
-    setError(err.response?.data?.message || 'Failed to create paste');
-  }
-};
 
+    setLoading(true);
 
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/pastes`, {
+        content,
+        ttl_seconds: ttl ? parseInt(ttl) : undefined,
+        max_views: views ? parseInt(views) : undefined,
+      });
 
+      if (res.data.id) {
+        setPasteUrl(`/p/${res.data.id}`);
+      }
+    } catch (err) {
+      console.error("Axios error:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "Failed to create paste");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-xl bg-white p-6 rounded-lg shadow-md">
-      {error && <div className="bg-red-100 text-red-700 p-2 mb-4 rounded">{error}</div>}
+      {error && (
+        <div className="bg-red-100 text-red-700 p-2 mb-4 rounded">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <textarea
@@ -82,6 +55,7 @@ const handleSubmit = async (e) => {
           placeholder="Enter your paste here..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          disabled={loading}
         />
 
         <div className="flex gap-4">
@@ -92,6 +66,7 @@ const handleSubmit = async (e) => {
             placeholder="TTL (seconds, optional)"
             value={ttl}
             onChange={(e) => setTtl(e.target.value)}
+            disabled={loading}
           />
           <input
             type="number"
@@ -100,20 +75,35 @@ const handleSubmit = async (e) => {
             placeholder="Max Views (optional)"
             value={views}
             onChange={(e) => setViews(e.target.value)}
+            disabled={loading}
           />
         </div>
 
         <button
           type="submit"
-          className="bg-green-400 text-white p-2 rounded hover:bg-green-500 transition"
+          disabled={loading}
+          className={`p-2 rounded text-white transition ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-400 hover:bg-green-500"
+          }`}
         >
-          Create Paste
+          {loading ? "Creating..." : "Create Paste"}
         </button>
       </form>
 
+      {loading && (
+        <p className="text-sm text-gray-500 mt-3">
+          Please wait, creating paste…
+        </p>
+      )}
+
       {pasteUrl && (
         <div className="mt-4 p-2 bg-green-100 text-green-700 rounded break-all">
-          Your paste URL: <a href={pasteUrl} className="underline">{pasteUrl}</a>
+          Your paste URL:{" "}
+          <a href={pasteUrl} className="underline">
+            {pasteUrl}
+          </a>
         </div>
       )}
     </div>
