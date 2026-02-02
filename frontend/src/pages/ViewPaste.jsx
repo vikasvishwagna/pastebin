@@ -8,29 +8,19 @@ function ViewPaste() {
   const [error, setError] = useState("");
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-  useEffect(() => {
-    const fetchPaste = async () => {
-      try {
-        // Call backend API to fetch paste
-        const res = await axios.get(`${API_BASE_URL}/api/pastes/${id}`);
+useEffect(() => {
+  const fetchPaste = async () => {
+    try {
+      // Call JSON API, not the HTML route
+      const res = await axios.get(`${API_BASE_URL}/api/pastes/${id}`);
+      setPaste(res.data);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to fetch paste");
+    }
+  };
 
-        // Backend returns { content, remaining_views, expires_at }
-        console.log("viewpasteJSX: ", res.data);
-
-        setPaste(res.data);
-      } catch (err) {
-        if (err.response && err.response.data) {
-          // Handle expired, max views exceeded, or not found
-          setError(err.response?.data?.error || "Failed to fetch paste");
-        } else {
-          setError("Failed to fetch paste");
-        }
-        console.error(err);
-      }
-    };
-
-    fetchPaste();
-  }, [id]);
+  fetchPaste();
+}, [id]);
 
   // Show error if any
   if (error) {
