@@ -8,9 +8,9 @@ function CreatePaste() {
   const [pasteUrl, setPasteUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [frontendUrl, setFrontendUrl] = useState("");
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
+  const FRONTEND_BASE_URL = window.location.origin; // auto detect frontend URL
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,15 +31,12 @@ function CreatePaste() {
         max_views: views ? parseInt(views) : undefined,
       });
 
-      console.log("CreatePasteJSX: ", res);
-
       if (res.data.id) {
-        // setPasteUrl(`${API_BASE_URL}/p/${res.data.id}`);
-        // Optional: show frontend URL
-        setFrontendUrl(`/v/${res.data.id}`);
+        // Frontend URL points to /v/:id now
+        setPasteUrl(`${FRONTEND_BASE_URL}/v/${res.data.id}`);
       }
     } catch (err) {
-      console.error("Axios error:", err.response?.data || err.message);
+      console.error("Error creating paste:", err.response?.data || err.message);
       setError(err.response?.data?.error || "Failed to create paste");
     } finally {
       setLoading(false);
@@ -86,9 +83,7 @@ function CreatePaste() {
           type="submit"
           disabled={loading}
           className={`p-2 rounded text-white transition ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-green-400 hover:bg-green-500"
+            loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-400 hover:bg-green-500"
           }`}
         >
           {loading ? "Creating..." : "Create Paste"}
@@ -101,25 +96,14 @@ function CreatePaste() {
         </p>
       )}
 
-      {/* {pasteUrl && (
-        <div className="mt-4 p-2 bg-green-100 text-green-700 rounded break-all">
-          Grader URL:{" "}
-          <a href={pasteUrl} className="underline" target="_blank">
+      {pasteUrl && (
+        <div className="mt-2 p-2 bg-blue-100 text-blue-700 rounded break-all">
+          Shareable URL:{" "}
+          <a href={pasteUrl} className="underline" target="_blank" rel="noopener noreferrer">
             {pasteUrl}
           </a>
         </div>
-      )} */}
-
-      {frontendUrl && (
-        <div className="mt-2 p-2 bg-blue-100 text-blue-700 rounded break-all">
-          Frontend URL:{" "}
-          <a href={frontendUrl} className="underline">
-            {frontendUrl}
-          </a>
-        </div>
       )}
-
-
     </div>
   );
 }
