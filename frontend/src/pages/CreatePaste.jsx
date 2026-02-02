@@ -34,9 +34,9 @@ function CreatePaste() {
       console.log("CreatePasteJSX: ", res);
 
       if (res.data.id) {
-        setPasteUrl(`${API_BASE_URL}/p/${res.data.id}`);
+        // setPasteUrl(`${API_BASE_URL}/p/${res.data.id}`);
         // Optional: show frontend URL
-        setFrontendUrl(`/p/${res.data.id}`);
+        setFrontendUrl(`/paste/${res.data.id}`);
       }
     } catch (err) {
       console.error("Axios error:", err.response?.data || err.message);
