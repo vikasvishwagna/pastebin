@@ -33,8 +33,10 @@ function CreatePaste() {
 
       console.log("CreatePasteJSX: ", res);
 
-      if (res.data.url) {
-        setPasteUrl(res.data.url);
+      if (res.data.id) {
+        // setPasteUrl(`${API_BASE_URL}/p/${res.data.id}`);
+        // Optional: show frontend URL
+        setFrontendUrl(`/v/${res.data.id}`);
       }
     } catch (err) {
       console.error("Axios error:", err.response?.data || err.message);
@@ -99,20 +101,25 @@ function CreatePaste() {
         </p>
       )}
 
-      {pasteUrl && (
+      {/* {pasteUrl && (
         <div className="mt-4 p-2 bg-green-100 text-green-700 rounded break-all">
-          Shareable URL:{" "}
-          <a
-            href={pasteUrl}
-            className="underline"
-            target="_blank"
-            rel="noreferrer"
-          >
+          Grader URL:{" "}
+          <a href={pasteUrl} className="underline" target="_blank">
             {pasteUrl}
           </a>
         </div>
+      )} */}
+
+      {frontendUrl && (
+        <div className="mt-2 p-2 bg-blue-100 text-blue-700 rounded break-all">
+          Frontend URL:{" "}
+          <a href={frontendUrl} className="underline">
+            {frontendUrl}
+          </a>
+        </div>
       )}
-      
+
+
     </div>
   );
 }
