@@ -73,7 +73,7 @@ router.post("/", async (req, res) => {
     return res.status(201).json({
       id: pasteId,
       url: `${process.env.BASE_URL}/p/${pasteId}`,
-      frontend_url: `${process.env.FRONTEND_URL}/paste/${pasteId}`,
+      // frontend_url: `${process.env.FRONTEND_URL}/paste/${pasteId}`,
     });
   } catch (err) {
     console.error("Error creating paste:", err);
