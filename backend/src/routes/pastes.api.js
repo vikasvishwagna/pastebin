@@ -90,13 +90,19 @@ router.get("/:id", async (req, res) => {
     const key = `paste:${req.params.id}`;
     const now = getNow(req);
 
-    const data = await redis.get(key);
+    const data = await redis.get(key); // REST call
 
     if (!data) {
       return res.status(404).json({ error: "paste not found" });
     }
 
-    const paste = JSON.parse(data);
+    let paste;
+    try {
+      paste = JSON.parse(data);
+    } catch (err) {
+      console.error("Invalid JSON in Redis for key:", key, err);
+      return res.status(500).json({ error: "internal server error" });
+    }
 
     // TTL check
     if (paste.expiresAt !== null && now >= paste.expiresAt) {
@@ -127,5 +133,6 @@ router.get("/:id", async (req, res) => {
     return res.status(500).json({ error: "internal server error" });
   }
 });
+
 
 export default router;

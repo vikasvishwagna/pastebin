@@ -18,7 +18,6 @@ useEffect(() => {
       setError(err.response?.data?.error || "Failed to fetch paste");
     }
   };
-
   fetchPaste();
 }, [id]);
 
